@@ -77,9 +77,9 @@ params:
 
     socialIcons:
         - name: CV
-          url: resume.pdf
+          url: vikram_oddiraju_resume.pdf
         - name: Email
-          url: mailto:voddira@purdue.edu
+          url: mailto:vikram_oddiraju@gmail.com
         # - name: Zoom
         #   url: https://www.zoom.us/my/igelfeld
         # - name: Location
@@ -95,7 +95,7 @@ params:
         # - name: YouTube
         #   url: https://www.youtube.com/@pmichaillat
         - name: Twitter
-          url: https://x.com/oddirajuvikram
+          url: https://x.com/vkrm_odrju
         # - name: Bluesky
         #   url: https://bsky.app/profile/pmichaillat.bsky.social
 
