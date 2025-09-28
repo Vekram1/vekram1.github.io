@@ -55,7 +55,7 @@ params:
     profileMode:
           enabled: true
           title: Vikram Oddiraju
-          subtitle: "I am a recent CS graduate from Purdue University. I write about my personal projects and other interests which are primarily in the fields of computer science, mathematics, and economics. Within computer science, I have a fond passion for scientific computing and a deep interest in systems. Consequently, the history of computer science is one something that fascinates me more and more every day."
+          subtitle: "I am a recent CS graduate from Purdue University. I write about my personal projects and other interests which are primarily in the fields of computer science, mathematics, and economics. Within computer science, I have a fond passion for scientific computing and a deep interest in systems. Consequently, the history of computer science is something that fascinates me more and more every day."
           imageUrl: "profile.jpg"
           imageWidth: 161.8
           imageHeight: 192
