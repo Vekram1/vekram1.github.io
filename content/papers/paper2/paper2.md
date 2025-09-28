@@ -22,7 +22,7 @@ cover:
 
 ##### Download:
 
-- [Paper](Costly_Financial_Intermediation.pdf)
+- [Paper](../../../static/papers_pdfs/Costly_Financial_Intermediation.pdf)
 <!-- - [Online appendix](appendix.pdf)
 - [Code and data](https://github.com/paper_repo) -->
 
