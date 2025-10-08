@@ -35,7 +35,10 @@ Consider a two-period economy with two types of households:
 $$
 \begin{cases}
 \text{Type A (fraction $\theta$)}: y_0^A \gg y_1^A \quad \text{(rich today, poor tomorrow)}
-\end{cases}\\
+\end{cases}
+$$
+
+$$
 \begin{cases}
 \text{Type B (fraction $1-\theta$)}: y_1^B \gg y_0^B \quad \text{(poor today, rich tomorrow)}
 \end{cases}
