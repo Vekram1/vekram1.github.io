@@ -30,7 +30,7 @@ cover:
 
 ## Problem Setup
 
-Consider a two-period economy with two types of households:
+<!-- Consider a two-period economy with two types of households:
 
 $$
 \begin{cases}
@@ -173,19 +173,10 @@ Savers earn less, borrowers pay more, and society as a whole is worse off.
 
 **Moral:**  
 We don’t live in the “ideal world” where credit flows at a single fair rate.  
-Instead, intermediation costs show up as a wedge between $r_d$ and $r_l$, lowering utility for everyone who is borrowing or lending money.
+Instead, intermediation costs show up as a wedge between $r_d$ and $r_l$, lowering utility for everyone who is borrowing or lending money. -->
 
 
 <!-- ![](sisyphus.png) -->
-
-
-
-
-
-
-
-
-
 
 
 
