@@ -9,9 +9,9 @@ author: ["Vikram Oddiraju"]
 description: "" 
 summary: ""
 cover:
-    # image: "sisyphus.png"
-    # alt: "Figure title (preferably 1280x720 pixels)"
-    # relative: true
+    image: "borrowers.png"
+    alt: "Figure title (preferably 1280x720 pixels)"
+    relative: true
 # editPost:
 #     URL: "https://doi.org/paper_doi"
 #     Text: "Journal/Repository Name"
@@ -34,7 +34,9 @@ Consider a two-period economy with two types of households:
 
 $$
 \begin{cases}
-\text{Type A (fraction $\theta$)}: y_0^A \gg y_1^A \quad \text{(rich today, poor tomorrow)} \\
+\text{Type A (fraction $\theta$)}: y_0^A \gg y_1^A \quad \text{(rich today, poor tomorrow)}
+\end{cases}\\
+\begin{cases}
 \text{Type B (fraction $1-\theta$)}: y_1^B \gg y_0^B \quad \text{(poor today, rich tomorrow)}
 \end{cases}
 $$
