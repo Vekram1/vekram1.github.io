@@ -10,13 +10,16 @@ cover:
   image: "borrowers.png"
   alt: "Disaggregated Price Screener Illustration"
   relative: true
+editPost:
+    URL: "https://vikramoddiraju.substack.com/publish/post/149990109"
+    Text: "Substack Version"
 draft: false
 ---
 
 ## TL;DR
 
 If you don’t feel like reading this newsletter but want the code, here’s the link to my GitHub repository:  
-👉 [**Disaggregated Price Stock Screener**](https://github.com/yourusername/Disaggregated-Price-Stock-Screener)
+[**Disaggregated Price Stock Screener**](https://github.com/yourusername/Disaggregated-Price-Stock-Screener)
 
 The code is well documented, but the last section of this post walks you through it step-by-step.
 
@@ -86,7 +89,7 @@ I **disaggregate price** by:
 
 There are weaknesses — using historical averages doesn’t capture future changes or business model shifts.  
 But that’s not the goal.  
-If I wanted the most precise intrinsic values, I’d be running **5 000 DCF models a day** and never sleeping.
+If I wanted the most precise intrinsic values, I’d be running **5000 DCF models a day** and never sleeping.
 
 My goals for the screener are simple:
 - Establish a **baseline understanding** of companies  
@@ -108,8 +111,10 @@ Below is a summary of the key components of the screener, followed by the full P
 
 You can run this in **Google Colab** or any local Python environment:
 
-```python
+```bash
 !pip install finvizfinance
+```
+```python
 """
 This code block creates the universe of companies to analyze.
 In my article, I call this shortlisting. Some investors stop here,
