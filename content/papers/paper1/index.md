@@ -7,7 +7,7 @@ summary: "A quantitative walkthrough of building a ranked stock screener based o
 tags: ["finance", "python", "investing", "valuation", "finviz"]
 categories: ["Quantitative Finance"]
 cover:
-  image: "sisyphys.png"
+  image: "sisyphus.png"
   alt: "Disaggregated Price Screener Illustration"
   relative: true
 editPost:
