@@ -79,7 +79,7 @@ params:
         - name: CV
           url: vikram_oddiraju_resume.pdf
         - name: Email
-          url: mailto:vikram_oddiraju@gmail.com
+          url: mailto:vikramoddiraju@gmail.com
         # - name: Zoom
         #   url: https://www.zoom.us/my/igelfeld
         # - name: Location
@@ -98,6 +98,8 @@ params:
           url: https://x.com/vkrm_odrju
         # - name: Bluesky
         #   url: https://bsky.app/profile/pmichaillat.bsky.social
+        - name: LinkedIn
+          url: https://www.linkedin.com/in/vikram-oddiraju/
 
     assets:
         disableScrollBarStyle: true
