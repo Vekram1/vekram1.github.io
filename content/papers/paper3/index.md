@@ -48,11 +48,13 @@ This piece focuses on the **Generalized Minimal Residual Method (GMRES)** and it
 Below represents the constraint-based optimization that we are trying to solve:
 
 $$
-\begin{align}
-&\min_{x} \frac{1}{2}x^{T} \Sigma x \\
+&\min_{x} \frac{1}{2}x^{T} \Sigma x
+$$
+$$
 \text{s.t } &\mu^{T}x = R_{target} \\
+$$
+$$
 &e^{T}x =1
-\end{align}
 $$
 
 We are trying to choose a vector **x**, representing our asset allocation, that minimizes the variance of the portfolio.
@@ -65,6 +67,8 @@ e is a vector of all ones, so the condition eᵀ x = 1 just means that the weigh
 
 To solve this optimization problem, we usually use the Lagrangian method. I won’t go through all the steps here since they’re not so important in the big picture, but the result looks like a system of equations that we can write as A y = b, where:
 
+$$\begin{bmatrix} \Sigma & e & \mu \\ e^T & 0 & 0 \\ \mu^{T} & 0 & 0 \end{bmatrix} \begin{bmatrix} x \\ \lambda_1 \\ \lambda_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 1 \\ R_{target} \end{bmatrix}$$
+
 $$
 A = 
 \begin{pmatrix} 
@@ -72,12 +76,15 @@ A =
 e^T & 0 & 0 \\ 
 \mu^{T} & 0 & 0
 \end{pmatrix}, \quad
+$$
 y = 
 \begin{pmatrix} 
 x \\ 
 \lambda_1 \\ 
 \lambda_2 
 \end{pmatrix}, \quad
+$$
+$$
 b = 
 \begin{pmatrix} 
 0 \\ 
@@ -85,6 +92,7 @@ b =
 R_{target} 
 \end{pmatrix}
 $$
+
 
 In our portfolio optimization, using an iterative solver, our goal is to solve for y, which will also yield us our correct portfolio allocation x.
 
@@ -112,16 +120,12 @@ Compute the initial residual:
 Iteratively build the Krylov subspace:
 
 $$
-\[
 K_n(A, r_0) = \text{span}\{r_0, Ar_0, A^2r_0, \ldots, A^{n-1}r_0\}
-\]
 $$
 
 The solution lies in:
 $$
-\[
 x_n \in x_0 + K_n
-\]
 $$
 
 #### 3. Issue: Near Linear Dependence
@@ -130,23 +134,17 @@ The vectors {r₀, Ar₀, …, Aⁿ⁻¹r₀} can become nearly linearly depende
 #### 4. Solution: Arnoldi Process
 The **Arnoldi iteration** constructs an orthonormal basis Qₙ = [q₁, q₂, …, qₙ] and an upper Hessenberg matrix Ĥₙ:
 $$
-\[
 A Q_n = Q_{n+1} \tilde{H}_n
-\]
 $$
 
 #### 5. Rewriting the Solution Form
 Since xₙ ∈ x₀ + Kₙ:
 $$
-\[
 x_n = x_0 + Q_n y_n
-\]
 $$
 Minimize residual ‖b – A xₙ‖, equivalent to:
 $$
-\[
 \min_{y_n} \| \tilde{H}_n y_n - \beta e_1 \|_2
-\]
 $$
 Once solved for yₙ, substitute back into **xₙ = x₀ + Qₙ yₙ** to approximate the solution.
 
@@ -174,9 +172,7 @@ The art lies in finding a **cheap but effective** M.
 
 Using **QR decomposition**, the system becomes:
 $$
-\[
 Qᵀ A x = Qᵀ b \Rightarrow R x = Qᵀ b
-\]
 $$
 QR is robust to ill-conditioning and efficient on smaller blocks, though full QR of A is impractical.
 
@@ -186,19 +182,15 @@ QR is robust to ill-conditioning and efficient on smaller blocks, though full QR
 
 Without preconditioning:
 $$
-\[
 K_n(A,r_0) = \text{span}\{r_0, Ar_0, A^2r_0, \ldots, A^{n-1}r_0 \}
-\]
 $$
 
 With preconditioning:
 $$
-\[
 C := M^{-1}A, \quad z_0 := M^{-1}r_0
-\]
-\[
+$$
+$$
 K_n(C,z_0) = \text{span}\{z_0, Cz_0, C^2z_0, \ldots, C^{n-1}z_0 \}
-\]
 $$
 
 #### Pseudocode
