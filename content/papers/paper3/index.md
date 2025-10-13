@@ -8,7 +8,7 @@ summary: "A deep dive into using FGMRES, an iterative solver enhanced with reinf
 tags: ["reinforcement learning", "iterative solvers", "portfolio optimization", "GMRES", "FGMRES"]
 categories: ["Iterative Solvers", "Reinforcement Learning", "Portfolio Optimization"]
 cover:
-  image: ""
+  image: "cover.png"
   alt: "Disaggregated Price Screener Illustration"
   relative: true
 editPost:
@@ -375,6 +375,7 @@ FGMRES fixed block time: 52.85 seconds
 FGMRES fixed block iterations: 71 
 FGMRES fixed block final residual norm: 7.94e-06
 ```
+![Poli graph](poli.png)
 ```
 Poli3
 FGMRES with PPO time: 143.58 seconds
@@ -383,6 +384,7 @@ FGMRES fixed block time: 183.86 seconds
 FGMRES fixed block iterations: 19 
 FGMRES fixed block final residual norm: 7.01e-06
 ```
+![Poli3 graph](poli3.png)
 As you can see, the agent performed quite a lot better in terms of time and iterations on the poli dataset but performed marginally better in poli3. This disturbed me for quite a while, and actually led me to make many changes to training and the reward system. While the PPO agent in both instances outperforms the fixed block size preconditioner in terms of time, the number of iterations is quite high in poli3.
 
 ### Ending Notes
