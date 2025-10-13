@@ -41,6 +41,7 @@ This piece focuses on the **Generalized Minimal Residual Method (GMRES)** and it
 
 Below represents the constraint-based optimization that we are trying to solve:
 
+$$
 \[
 \begin{align}
 &\min_{x} \frac{1}{2}x^{T} \Sigma x \\
@@ -48,6 +49,7 @@ Below represents the constraint-based optimization that we are trying to solve:
 &e^{T}x =1
 \end{align}
 \]
+$$
 
 We are trying to choose a vector **x**, representing our asset allocation, that minimizes the variance of the portfolio.
 
@@ -58,6 +60,7 @@ e is a vector of all ones, so the condition eᵀ x = 1 just means that the weigh
 μ is a vector of expected returns, so the condition μᵀ x = R_target says that the dot product of the expected returns with our chosen portfolio weights must equal our portfolio’s target return.
 
 To solve this optimization problem, we usually use the Lagrangian method. I won’t go through all the steps here since they’re not so important in the big picture, but the result looks like a system of equations that we can write as A y = b, where:
+$$
 \[
 A = 
 \begin{pmatrix} 
@@ -78,6 +81,7 @@ b =
 R_{target} 
 \end{pmatrix}
 \]
+$$
 
 In our portfolio optimization, using an iterative solver, our goal is to solve for y, which will also yield us our correct portfolio allocation x.
 
@@ -104,38 +108,43 @@ Compute the initial residual:
 #### 2. Construct the Krylov Subspace
 Iteratively build the Krylov subspace:
 
+$$
 \[
 K_n(A, r_0) = \text{span}\{r_0, Ar_0, A^2r_0, \ldots, A^{n-1}r_0\}
 \]
+$$
 
 The solution lies in:
+$$
 \[
 x_n \in x_0 + K_n
 \]
+$$
 
 #### 3. Issue: Near Linear Dependence
 The vectors {r₀, Ar₀, …, Aⁿ⁻¹r₀} can become nearly linearly dependent, degrading the subspace quality.
 
 #### 4. Solution: Arnoldi Process
 The **Arnoldi iteration** constructs an orthonormal basis Qₙ = [q₁, q₂, …, qₙ] and an upper Hessenberg matrix Ĥₙ:
-
+$$
 \[
 A Q_n = Q_{n+1} \tilde{H}_n
 \]
+$$
 
 #### 5. Rewriting the Solution Form
 Since xₙ ∈ x₀ + Kₙ:
-
+$$
 \[
 x_n = x_0 + Q_n y_n
 \]
-
+$$
 Minimize residual ‖b – A xₙ‖, equivalent to:
-
+$$
 \[
 \min_{y_n} \| \tilde{H}_n y_n - \beta e_1 \|_2
 \]
-
+$$
 Once solved for yₙ, substitute back into **xₙ = x₀ + Qₙ yₙ** to approximate the solution.
 
 GMRES effectively reduces a large *m×m* system into smaller least squares problems of size *(n+1)×n*, where *n* ≪ *m*.
@@ -161,11 +170,11 @@ The art lies in finding a **cheap but effective** M.
 ### QR as a Preconditioner
 
 Using **QR decomposition**, the system becomes:
-
+$$
 \[
 Qᵀ A x = Qᵀ b \Rightarrow R x = Qᵀ b
 \]
-
+$$
 QR is robust to ill-conditioning and efficient on smaller blocks, though full QR of A is impractical.
 
 ---
@@ -173,22 +182,26 @@ QR is robust to ill-conditioning and efficient on smaller blocks, though full QR
 ### GMRES with Preconditioning
 
 Without preconditioning:
+$$
 \[
 K_n(A,r_0) = \text{span}\{r_0, Ar_0, A^2r_0, \ldots, A^{n-1}r_0 \}
 \]
+$$
 
 With preconditioning:
+$$
 \[
 C := M^{-1}A, \quad z_0 := M^{-1}r_0
 \]
 \[
 K_n(C,z_0) = \text{span}\{z_0, Cz_0, C^2z_0, \ldots, C^{n-1}z_0 \}
 \]
+$$
 
 #### Pseudocode
 In psuedocode, FGMRES looks like this:
 
-```python
+```
 Input: Matrix A ∈ R^(m×m), vector b ∈ R^m, restart parameter k
 Output: Approximate solution x to A x = b
 
@@ -218,4 +231,79 @@ Output: Approximate solution x to A x = b
 ```
 
 Instead, if we apply a preconditioner, the Arnoldi process builds this Krylov subspace as such, where C and z_0 are:
+$$
+\[
+C := M^{-1}A, \quad z_0 := M^{-1}r_0
+\]
+\[
+K_n(C,z_0) = \text{span}\{z_0, Cz_0, C^2z_0, \ldots, C^{n-1}z_0 \}
+\]
+$$
+The pseudocode version looks like:
 
+```
+Input: Matrix A ∈ R^(m×m), preconditioner M (invertible), vector b ∈ R^m, restart parameter k
+Output: Approximate solution x to A x = b
+
+1. Choose initial guess x₀
+2. r₀ = b – A x₀
+3. z₀ = M⁻¹ r₀
+4. β = ||z₀||
+5. v₁ = z₀ / β
+6. V = [v₁]                  # Orthonormal basis vectors
+7. H = zeros((k+1, k))       # Upper Hessenberg matrix
+
+8. For j = 1 to k:
+       w = A vⱼ
+       w = M⁻¹ w             # Apply preconditioner to our Krylov space
+       For i = 1 … j:        # Arnoldi orthogonalization
+            hᵢⱼ = ⟨w, vᵢ⟩
+            w = w – hᵢⱼ vᵢ
+       End
+       hⱼ₊₁,ⱼ = ||w||
+       vⱼ₊₁ = w / hⱼ₊₁,ⱼ
+       Append vⱼ₊₁ to V
+
+9. Solve the least squares problem:
+       minimize || β e₁ – H y ||
+   for y ∈ R^k
+
+10. Compute solution update:
+       x = x₀ + V y
+```
+
+### FGMRES Preconditioning
+With FGMRES, we can let the preconditioner change at every iteration. This is helpful for us, since we will be using **block preconditioning** (i.e., we precondition matrix A on different block sizes).
+
+---
+### How preconditioning is set up in OUR PROBLEM
+Because **A** is sparse, we can improve convergence of the iterative solver by splitting the matrix **A** into smaller block sizes of size l × l.
+
+So what we end up having is:
+
+M = diag(A₁, A₂, …, Aₖ) where each block Aᵢ ∈ R^(l × l).
+
+The last block just takes whatever is left over.
+
+Example: if A is an 11×11 matrix, and our chosen block size is 5, then M will be composed of:
+
+$$
+\[
+    M=A_{1:5, 1:5}, A_{6:10, 6:10}, A_{11,11}
+\]
+$$
+At each inner iteration j of FGMRES, the current preconditioner Mⱼ⁻¹ is applied by solving each block (via QR in our case). What makes this “flexible” is not just that the blocks can be different sizes; it’s that the preconditioner itself can change from one iteration to the next. In our setup, that flexibility shows up because the block size (and thus the block structure of Mⱼ) is chosen adaptively at each step. What we end up seeing is that:
+
+$$
+\[
+    v_{j+1} \propto AM_j^{-1}v_j
+\]
+and
+$$
+\[
+    C_j = AM_j^{-1}
+\]
+$$
+in our Krylov subspace. Once we compute the next candidate vector vⱼ₊₁, we orthonormalize it against the previous basis vectors. This process gives us the Krylov subspace we build the approximation from.
+
+The main idea here is that block preconditioning reduces the number of iterations needed to reach a good solution x. With GMRES (fixed block size), the preconditioner is the same at every step. With FGMRES (flexible block size), we adapt the block size at each iteration, which can lead to faster convergence on tough problems.
