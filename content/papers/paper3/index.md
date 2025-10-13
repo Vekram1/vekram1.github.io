@@ -16,6 +16,10 @@ editPost:
     Text: "Substack Version"
 draft: false
 
+**Link to research paper:** Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:**[https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1) 
+**Link to my code:** [https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver](https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver)
+
+
 ---
 
 ## Motivation
@@ -307,3 +311,71 @@ $$
 in our Krylov subspace. Once we compute the next candidate vector vⱼ₊₁, we orthonormalize it against the previous basis vectors. This process gives us the Krylov subspace we build the approximation from.
 
 The main idea here is that block preconditioning reduces the number of iterations needed to reach a good solution x. With GMRES (fixed block size), the preconditioner is the same at every step. With FGMRES (flexible block size), we adapt the block size at each iteration, which can lead to faster convergence on tough problems.
+
+### RL Training
+This was the fun part of the project. While the math going behind iterative solvers was a little painful for me to learn, creating the environment for the agent, training the agent, adjusting rewards, and testing the agent on different problems was quite fun and very satisfying. I used the Stable Baseline3 (SB3) library for environment setup and learning.
+* __Environemnt setup__
+I will just focus on the fundamentals here which are the agent’s action and observation space.
+  * Action Space
+    * The action space of the agent was 8 discrete values. The paper never explicitly states what the action should be. The only thing that the author’s wrote was this: “In the PPO-based solver, the block size is limited to the set of integer values considered for the constant block size method, ensuring a fair comparison.”
+    * I decided to use block sizes that were a small share of A.
+    * Here I show the action space selection
+    ```python
+    def get_block_size(action, n: int) -> int:
+        action = int(np.squeeze(action))
+        """
+        Map discrete action (0–7) to a block size that adapts with matrix size n.
+        
+        - Small n → minimum block size floor
+        - Medium n → grow slowly with sqrt(n)
+        - Large n → capped to avoid huge factorization cost
+        """
+
+        # Define scaling factors relative to sqrt(n)
+        factors = [0.25, 0.35, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0]
+
+        # Compute baseline block size
+        base_size = int(factors[action] * np.sqrt(n))
+
+        # Enforce reasonable bounds
+        block_size = max(4, base_size)       # minimum useful size
+        block_size = min(block_size, 128)    # hard cap to keep runtime reasonable
+
+        return block_size
+    ```
+  * Observation Space
+    * My observation space was a little more off script from the research paper. The authors had the observation space strictly as the residual norm. I believed that I could achieve further optimization of the agent in testing by defining an observation space that was comprised of a 4-dimensional continuous vector. The four features of the observation space are
+        1. Relative Residual Norm: This is the ratio of the current residual norm to the initial residual norm. A value closer to 0 indicates better convergence.
+        2. Log of the residual norm: The logarithm of the relative residual norm, provides better scaling for tracking improvements when the residual gets very small which it absolutely can and did in my testing.
+        3. Normalized Matrix Size: The logarithm of the matrix size (n) normalized by a maximum size. This is essential for the agent to generalize across different problem sizes.
+        4. Normalized Current Iteration: The current iteration divided by the maximum number of iterations. This tell the agent how far along the solver is in its run and can make decisions accordingly
+    ```python
+    # Define observation space: 4 continuous features
+    # This gives the agent more context for generalization.
+    # [0]: Relative residual norm (norm_k / norm_0)
+    # [1]: Log of the relative residual norm
+    # [2]: Matrix size normalized by log scale (log(n) / log(max_n_seen_in_training))
+    # [3]: Current iteration number normalized
+    self.observation_space = spaces.Box(
+        low=np.array([0.0, -np.inf, 0.0, 0.0], dtype=np.float32),
+        high=np.array([1.0, 0.0,  np.inf, 1.0], dtype=np.float32),
+        shape=(4,),
+        dtype=np.float32
+    )
+    ```
+    * __Action Selection__
+    To understand how the agent behaves, we have to understand the algorithm it follows, the reward function it is given, and how this all impacts what action the agent picks.
+      * Algorithm - Proximity Policy Optimization (PPO)
+        * PPO is the specific RL algorithm used to train the agent. The main goal of PPO is to find an optimal policy (i.e a mapping from observations to actions) by iteratively updating the policy. It does this by collecting data from the environment and using that data to improve the policy. This algorithm is relatively simple to implement and performs comparably or better that state-of-the-art approaches
+          * _Proximal Policy Optimization (PPO), which perform comparably or better than state-of-the-art approaches while being much simpler to implement and tune._
+        * Reward Function
+          * The reward function is defined within my FGMRESEnv class. I have is where
+            ```python
+            reward = (prev_residual_norm - curr_residual_norm) / prev_residual_norm
+            ```
+            The goal is to encourage the agent to chooses actions (block sizes) that lead to a significant reduction in the system’s residual norm at each step. A positive reward means the residual norm decreased, while a negative reward means it increased. The agent is trained to maximize the cumulative reward over an entire episode, which means its goal is to find a sequence of block sizes that leads to the fastest and most stable convergence.
+
+### Results of Testing
+Finally, we have reached the results of this experiment. Would my results match the ones the researchers in the “Accelerated Portfolio Optimization and Option Pricing with Reinforcement Learning” paper got?
+
+There wasn’t a lot of information on what datasets the ppo agent was supposed to be trained on. I did know that for their testing, they used datasets from the old University of Florida Sparse Matrix Collection, which is now managed under Texas A and M university (Sparse Matrix Tamu). So I decided to pick a group of 7 sparse matrices to train on, specifically
