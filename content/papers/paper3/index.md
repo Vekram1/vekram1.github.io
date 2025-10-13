@@ -20,7 +20,8 @@ draft: false
 
 ---
 
-Link to research paper:** Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:**[https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1)
+Link to research paper: **Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:**[https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1)
+
 **Link to my code:** [https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver](https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver)
 
 ## Motivation
@@ -379,4 +380,37 @@ I will just focus on the fundamentals here which are the agent’s action and ob
 ### Results of Testing
 Finally, we have reached the results of this experiment. Would my results match the ones the researchers in the “Accelerated Portfolio Optimization and Option Pricing with Reinforcement Learning” paper got?
 
-There wasn’t a lot of information on what datasets the ppo agent was supposed to be trained on. I did know that for their testing, they used datasets from the old University of Florida Sparse Matrix Collection, which is now managed under Texas A and M university (Sparse Matrix Tamu). So I decided to pick a group of 7 sparse matrices to train on, specifically
+There wasn’t a lot of information on what datasets the ppo agent was supposed to be trained on. I did know that for their testing, they used datasets from the old University of Florida Sparse Matrix Collection, which is now managed under Texas A and M university [Sparse Matrix Tamu](https://sparse.tamu.edu). So I decided to pick a group of 7 sparse matrices to train on, specifically
+```python
+TRAIN_MATRICES = [
+("Newman", "polbooks"),
+("Grund", "meg1"),
+("Newman", "polblogs"),
+("Grund", "b_dyn"),
+("Marini", "eurqsa"),
+("Hollinger", "g7jac010sc"),
+("Grund", "poli_large")
+]
+```
+where TRAIN_MATRICES[i] = {<Group>, <Name>} from the dataset. I thought this would be good enough for training. My test matrices were from the group Grund. The matrices were the poli and poli3 matrices. Here were the results of my data. I have included the number of iterations, time, and final residual for both my PPO agent solver and a fixed block size solver (the blocks were of size 500).
+```
+Poli 
+FGMRES with PPO time: 1.80 seconds 
+FGMRES iterations: 17 
+FGMRES final residual norm: 4.82e-06 
+FGMRES fixed block time: 52.85 seconds 
+FGMRES fixed block iterations: 71 
+FGMRES fixed block final residual norm: 7.94e-06
+```
+```
+Poli3
+FGMRES with PPO time: 143.58 seconds
+FGMRES iterations: 19 FGMRES final residual norm: 7.01e-06
+FGMRES fixed block time: 183.86 seconds
+FGMRES fixed block iterations: 19 
+FGMRES fixed block final residual norm: 7.01e-06
+```
+As you can see, the agent performed quite a lot better in terms of time and iterations on the poli dataset but performed marginally better in poli3. This disturbed me for quite a while, and actually led me to make many changes to training and the reward system. While the PPO agent in both instances outperforms the fixed block size preconditioner in terms of time, the number of iterations is quite high in poli3.
+
+### Ending Notes
+My results were not what I had expected. I wanted to see the PPO agent crush the fixed sized block preconditioner, and it did in one of 2 of my cases. The research paper I read showed that the PPO agent far outperformed the fixed block size preconditioner in Poli3 as well. Regardless of my results, this was a great learning experience for me. I learned about GMRES, FGMRES, and how to train an RL agent. Thank you for reading. I hope you got something out of it.
