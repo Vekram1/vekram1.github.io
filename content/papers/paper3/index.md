@@ -70,32 +70,19 @@ To solve this optimization problem, we usually use the Lagrangian method. I won�
 
 $$\begin{bmatrix} \Sigma & e & \mu \\ e^T & 0 & 0 \\ \mu^{T} & 0 & 0 \end{bmatrix} \begin{bmatrix} x \\ \lambda_1 \\ \lambda_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 1 \\ R_{target} \end{bmatrix}$$
 
+```
+A = | Σ  e   μ  |
+    | eᵀ 0   0  |
+    | μᵀ 0   0  |
 
+y = | x |
+    | λ₁|
+    | λ₂|
 
-$$`
-A = 
-\begin{bmatrix} 
-\Sigma & e & \mu \\ 
-e^T & 0 & 0 \\ 
-\mu^{T} & 0 & 0
-\end{bmatrix}, \quad
-`$$
-$$`
-y = 
-\begin{pmatrix} 
-x \\ 
-\lambda_1 \\ 
-\lambda_2 
-\end{pmatrix}, \quad
-`$$
-$$`
-b = 
-\begin{pmatrix} 
-0 \\ 
-1 \\ 
-R_{target} 
-\end{pmatrix}
-`$$
+b = | 0 |
+    | 1 |
+    | R_target |
+```
 
 
 In our portfolio optimization, using an iterative solver, our goal is to solve for y, which will also yield us our correct portfolio allocation x.
@@ -124,7 +111,7 @@ Compute the initial residual:
 Iteratively build the Krylov subspace:
 
 $$
-K_n(A, r_0) = \text{span}\{r_0, Ar_0, A^2r_0, \ldots, A^{n-1}r_0\}
+K_n(A, r_0) = \text{span} \{r_0, Ar_0, A^2r_0, \ldots, A^{n-1}r_0\}
 $$
 
 The solution lies in:
@@ -287,21 +274,16 @@ The last block just takes whatever is left over.
 Example: if A is an 11×11 matrix, and our chosen block size is 5, then M will be composed of:
 
 $$
-\[
     M=A_{1:5, 1:5}, A_{6:10, 6:10}, A_{11,11}
-\]
 $$
 At each inner iteration j of FGMRES, the current preconditioner Mⱼ⁻¹ is applied by solving each block (via QR in our case). What makes this “flexible” is not just that the blocks can be different sizes; it’s that the preconditioner itself can change from one iteration to the next. In our setup, that flexibility shows up because the block size (and thus the block structure of Mⱼ) is chosen adaptively at each step. What we end up seeing is that:
 
 $$
-\[
     v_{j+1} \propto AM_j^{-1}v_j
-\]
+$$
 and
 $$
-\[
     C_j = AM_j^{-1}
-\]
 $$
 in our Krylov subspace. Once we compute the next candidate vector vⱼ₊₁, we orthonormalize it against the previous basis vectors. This process gives us the Krylov subspace we build the approximation from.
 
