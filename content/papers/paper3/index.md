@@ -48,13 +48,14 @@ This piece focuses on the **Generalized Minimal Residual Method (GMRES)** and it
 Below represents the constraint-based optimization that we are trying to solve:
 
 $$
-&\min_{x} \frac{1}{2}x^{T} \Sigma x
+\min_{x} \frac{1}{2}x^{T} \Sigma x
+$$
+
+$$
+\text{s.t }\mu^{T}x = R_{target}
 $$
 $$
-\text{s.t } &\mu^{T}x = R_{target} \\
-$$
-$$
-&e^{T}x =1
+e^{T}x =1
 $$
 
 We are trying to choose a vector **x**, representing our asset allocation, that minimizes the variance of the portfolio.
@@ -69,29 +70,32 @@ To solve this optimization problem, we usually use the Lagrangian method. I wonâ
 
 $$\begin{bmatrix} \Sigma & e & \mu \\ e^T & 0 & 0 \\ \mu^{T} & 0 & 0 \end{bmatrix} \begin{bmatrix} x \\ \lambda_1 \\ \lambda_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 1 \\ R_{target} \end{bmatrix}$$
 
-$$
+
+
+$$`
 A = 
-\begin{pmatrix} 
+\begin{bmatrix} 
 \Sigma & e & \mu \\ 
 e^T & 0 & 0 \\ 
 \mu^{T} & 0 & 0
-\end{pmatrix}, \quad
-$$
+\end{bmatrix}, \quad
+`$$
+$$`
 y = 
 \begin{pmatrix} 
 x \\ 
 \lambda_1 \\ 
 \lambda_2 
 \end{pmatrix}, \quad
-$$
-$$
+`$$
+$$`
 b = 
 \begin{pmatrix} 
 0 \\ 
 1 \\ 
 R_{target} 
 \end{pmatrix}
-$$
+`$$
 
 
 In our portfolio optimization, using an iterative solver, our goal is to solve for y, which will also yield us our correct portfolio allocation x.
