@@ -68,8 +68,6 @@ e is a vector of all ones, so the condition eᵀ x = 1 just means that the weigh
 
 To solve this optimization problem, we usually use the Lagrangian method. I won’t go through all the steps here since they’re not so important in the big picture, but the result looks like a system of equations that we can write as A y = b, where:
 
-$$\begin{bmatrix} \Sigma & e & \mu \\ e^T & 0 & 0 \\ \mu^{T} & 0 & 0 \end{bmatrix} \begin{bmatrix} x \\ \lambda_1 \\ \lambda_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 1 \\ R_{target} \end{bmatrix}$$
-
 ```
 A = | Σ  e   μ  |
     | eᵀ 0   0  |
@@ -79,8 +77,8 @@ y = | x |
     | λ₁|
     | λ₂|
 
-b = | 0 |
-    | 1 |
+b = |     0    |
+    |     1    |
     | R_target |
 ```
 
