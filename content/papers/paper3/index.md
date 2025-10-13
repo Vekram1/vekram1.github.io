@@ -16,11 +16,12 @@ editPost:
     Text: "Substack Version"
 draft: false
 
-**Link to research paper:** Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:**[https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1) 
-**Link to my code:** [https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver](https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver)
 
 
 ---
+
+Link to research paper:** Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:**[https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1)
+**Link to my code:** [https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver](https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver)
 
 ## Motivation
 
