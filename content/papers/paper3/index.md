@@ -20,7 +20,7 @@ draft: false
 
 ---
 
-Link to research paper: **Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:**[https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1)
+Link to research paper: **Accelerated Portfolio Optimization And Option Pricing With Reinforcement Learning by Hadi Keramati and Samaneh Jazayeri:*    [https://arxiv.org/pdf/2507.01972v1](https://arxiv.org/pdf/2507.01972v1)
 
 **Link to my code:** [https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver](https://github.com/Vekram1/ill_conditioned_ppo_RL_matrix_solver)
 
@@ -48,13 +48,11 @@ This piece focuses on the **Generalized Minimal Residual Method (GMRES)** and it
 Below represents the constraint-based optimization that we are trying to solve:
 
 $$
-\[
 \begin{align}
 &\min_{x} \frac{1}{2}x^{T} \Sigma x \\
 \text{s.t } &\mu^{T}x = R_{target} \\
 &e^{T}x =1
 \end{align}
-\]
 $$
 
 We are trying to choose a vector **x**, representing our asset allocation, that minimizes the variance of the portfolio.
@@ -66,8 +64,8 @@ e is a vector of all ones, so the condition eᵀ x = 1 just means that the weigh
 μ is a vector of expected returns, so the condition μᵀ x = R_target says that the dot product of the expected returns with our chosen portfolio weights must equal our portfolio’s target return.
 
 To solve this optimization problem, we usually use the Lagrangian method. I won’t go through all the steps here since they’re not so important in the big picture, but the result looks like a system of equations that we can write as A y = b, where:
+
 $$
-\[
 A = 
 \begin{pmatrix} 
 \Sigma & e & \mu \\ 
@@ -86,7 +84,6 @@ b =
 1 \\ 
 R_{target} 
 \end{pmatrix}
-\]
 $$
 
 In our portfolio optimization, using an iterative solver, our goal is to solve for y, which will also yield us our correct portfolio allocation x.
@@ -392,7 +389,7 @@ TRAIN_MATRICES = [
 ("Grund", "poli_large")
 ]
 ```
-where TRAIN_MATRICES[i] = {<Group>, <Name>} from the dataset. I thought this would be good enough for training. My test matrices were from the group Grund. The matrices were the poli and poli3 matrices. Here were the results of my data. I have included the number of iterations, time, and final residual for both my PPO agent solver and a fixed block size solver (the blocks were of size 500).
+where TRAIN_MATRICES[i] = $\{\<Group\>, \<Name\>\}$ from the dataset. I thought this would be good enough for training. My test matrices were from the group Grund. The matrices were the poli and poli3 matrices. Here were the results of my data. I have included the number of iterations, time, and final residual for both my PPO agent solver and a fixed block size solver (the blocks were of size 500).
 ```
 Poli 
 FGMRES with PPO time: 1.80 seconds 
