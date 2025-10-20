@@ -16,7 +16,7 @@ menu:
         #   url: books/
         #   weight: 5 
         - name: Writing
-          url: Writing/
+          url: papers/
         #   weight: 2
         # - name: Courses
         #   url: courses/
@@ -61,7 +61,7 @@ params:
           imageHeight: 192
           buttons:
             - name: Writing
-              url: writing/
+              url: papers/
             # - name: Data
             #   url: data/
             # - name: Books
