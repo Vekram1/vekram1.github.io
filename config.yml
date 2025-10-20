@@ -59,6 +59,8 @@ params:
           imageUrl: "profile.jpg"
           imageWidth: 161.8
           imageHeight: 192
+          defaultTheme: light
+          disableThemeToggle: false
           buttons:
             - name: Writing
               url: papers/
