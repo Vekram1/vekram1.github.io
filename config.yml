@@ -15,8 +15,8 @@ menu:
         # - name: Books
         #   url: books/
         #   weight: 5 
-        - name: Papers
-          url: papers/
+        - name: Writing
+          url: Writing/
         #   weight: 2
         # - name: Courses
         #   url: courses/
@@ -33,7 +33,7 @@ params:
     author: Moritz-Maria von Igelfeld
     # googleAnalyticsID: "G-XXXXX"
     DateFormat: "January 2006"
-    defaultTheme: light
+    defaultTheme: dark
     hideFooter: false
     disableThemeToggle: false
     ShowShareButtons: false
@@ -59,11 +59,9 @@ params:
           imageUrl: "profile.jpg"
           imageWidth: 161.8
           imageHeight: 192
-          # defaultTheme: light
-          # disableThemeToggle: false
           buttons:
             - name: Writing
-              url: papers/
+              url: writing/
             # - name: Data
             #   url: data/
             # - name: Books
