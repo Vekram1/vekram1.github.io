@@ -45,7 +45,7 @@ What we can say from this equation is that if we simulated the SDE from time $0$
 
 $$\mathbb{E}[P(X_T)]$$
 
-where $P(X_T)$ is some function of the terminal value of the SDE.
+where $P(X_T)$ for us is just the distribution of $X_T$. (Oftentimes, for instance, in options pricing $P(x) = max(x-K,0)$.
 
 For many SDEs (including OU with general payoffs), computing this expectation analytically is difficult or impossible. So we turn to **numerical simulation**.
 
