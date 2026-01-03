@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multilevel Monte Carlo for the Ornstein–Uhlenbeck SDE | Vikram Oddiraju</title>
+  <meta name="description" content="An exploration of Multilevel Monte Carlo (MLMC) for estimating expectations of stochastic differential equations, using the Ornstein–Uhlenbeck process as a test case. I investigate how approximate random variables and mixed floating-point precision influence computational efficiency and accuracy." />
+  <link rel="stylesheet" href="../../src/styles.css" />
+</head>
+<body class="paper-page">
+  <main class="paper-container">
+    <header class="paper-header">
+      <p class="paper-kicker"><a href="../../src/index.html">Vikram Oddiraju</a> | 2025-10-21 </p>
+      <h1>Multilevel Monte Carlo for the Ornstein–Uhlenbeck SDE</h1>
+      <p class="paper-subtitle">Estimating expectations of SDEs efficiently using Multilevel Monte Carlo, approximate random variables, and mixed floating-point precision</p>
+      
+      <p class="paper-summary">An exploration of Multilevel Monte Carlo (MLMC) for estimating expectations of stochastic differential equations, using the Ornstein–Uhlenbeck process as a test case. I investigate how approximate random variables and mixed floating-point precision influence computational efficiency and accuracy.</p>
+      
+    </header>
+    <article class="paper-body">
+<h1>Multilevel Monte Carlo For Estimating the Expected Value of Stochastic Differential Equations</h1>
+<h2>Motivation</h2>
+<p>A few days ago, I replied to a tweet about stochastic differential equations (SDEs).<br />
+<em>(Insert screenshot of tweet + reply)</em></p>
+<p>Quant Beckman’s response was a bit snarky—especially considering it was his own post—but it did get me thinking seriously about the computational challenges behind SDEs. Problems like computing expectations, option payoffs, or tail probabilities can easily become expensive, especially when the SDE has no closed-form solution.</p>
+<p>But <em>computationally expensive</em> doesn’t mean <em>hopeless</em>.<br />
+It just means we need better algorithms.</p>
+<h2>This led me down the path of <strong>Multilevel Monte Carlo (MLMC)</strong>, a method designed to dramatically speed up the estimation of expectations of SDEs by combining simulations at different time resolutions. Along the way, I also examined how approximate random variables, single vs double precision, and compensated summation (Kahan) affect accuracy.</h2>
+<h1>Background: Multilevel Monte Carlo (MLMC)</h1>
+<h2>1. The Problem</h2>
+<p>Consider the Ornstein–Uhlenbeck (OU) SDE:</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>d</mi><msub><mi>x</mi><mi>t</mi></msub><mo>&#x0003D;</mo><mi>&#x003B8;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003BC;</mi><mo>&#x02212;</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false">&#x00029;</mo><mspace width="0.167em" /><mi>d</mi><mi>t</mi><mo>&#x0002B;</mo><mi>&#x003C3;</mi><mspace width="0.167em" /><mi>d</mi><msub><mi>W</mi><mi>t</mi></msub></mrow></math></div>
+
+<p>What we can say from this equation is that if we simulated the SDE from time <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn></mrow></math></span> to <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math></span>, the value <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>X</mi><mi>T</mi></msub></mrow></math></span> is the random state of the process at the terminal time <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math></span>. Due to the stochastic nature of stochastic differential equations, <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>X</mi><mi>T</mi></msub></mrow></math></span> is non determinstic, therefore it is oftentimes a hard problem to figure out how to estimate the expectation of the distribution</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><mi>P</mi><mo stretchy="false">&#x00028;</mo><msub><mi>X</mi><mi>T</mi></msub><mo stretchy="false">&#x00029;</mo><mo stretchy="false">]</mo></mrow></math></div>
+
+<p>where <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>P</mi><mo stretchy="false">&#x00028;</mo><msub><mi>X</mi><mi>T</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math></span> for us is just the distribution of <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>X</mi><mi>T</mi></msub></mrow></math></span>. (Oftentimes, for instance, in options pricing <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>P</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo>&#x02212;</mo><mi>K</mi><mo>&#x0002C;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo></mrow></math></span>.</p>
+<p>For many SDEs (including OU with general payoffs), computing this expectation analytically is difficult or impossible. So we turn to <strong>numerical simulation</strong>.</p>
+<p>A simple and widely used scheme is the <strong>Euler–Maruyama method</strong>.</p>
+<hr />
+<h2>1.1 Discretizing the OU SDE with Euler–Maruyama</h2>
+<p>Given</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>d</mi><msub><mi>x</mi><mi>t</mi></msub><mo>&#x0003D;</mo><mi>&#x003B8;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003BC;</mi><mo>&#x02212;</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false">&#x00029;</mo><mi>d</mi><mi>t</mi><mo>&#x0002B;</mo><mi>&#x003C3;</mi><mspace width="0.167em" /><mi>d</mi><msub><mi>W</mi><mi>t</mi></msub><mo>&#x0002C;</mo><mspace width="2em" /><mi>x</mi><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mi>x</mi><mn>0</mn></msub></mrow></math></div>
+
+<p>integrate over the interval ([t_n, t_{n+1}]) with step size (\Delta t):</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>x</mi><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub><mo>&#x02212;</mo><msub><mi>x</mi><mi>n</mi></msub><mo>&#x0003D;</mo><msubsup><mo>&#x0222B;</mo><mrow><msub><mi>t</mi><mi>n</mi></msub></mrow><mrow><msub><mi>t</mi><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub></mrow></msubsup><mi>&#x003B8;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003BC;</mi><mo>&#x02212;</mo><msub><mi>x</mi><mi>s</mi></msub><mo stretchy="false">&#x00029;</mo><mspace width="0.167em" /><mi>d</mi><mi>s</mi><mo>&#x0002B;</mo><msubsup><mo>&#x0222B;</mo><mrow><msub><mi>t</mi><mi>n</mi></msub></mrow><mrow><msub><mi>t</mi><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub></mrow></msubsup><mi>&#x003C3;</mi><mspace width="0.167em" /><mi>d</mi><msub><mi>W</mi><mi>s</mi></msub><mo>&#x0002E;</mo></mrow></math></div>
+
+<p>Euler–Maruyama approximates these integrals using:</p>
+<ul>
+<li>
+<p>drift evaluated at the left endpoint:<br />
+<br />
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B8;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003BC;</mi><mo>&#x02212;</mo><msub><mi>x</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00394;</mi><mi>t</mi><mi>\</mi></mrow></math></div>
+</p>
+</li>
+<li>
+<p>Brownian increment:<br />
+<br />
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x00394;</mi><msub><mi>W</mi><mi>n</mi></msub><mi>&#x0007E;</mi><mi>&#x1D4A9;</mi><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mi>&#x00394;</mi><mi>t</mi><mo stretchy="false">&#x00029;</mo></mrow></math></div>
+</p>
+</li>
+</ul>
+<p>giving the update</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><menclose notation="box"><mrow><msub><mi>x</mi><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub><mo>&#x0003D;</mo><msub><mi>x</mi><mi>n</mi></msub><mo>&#x0002B;</mo><mi>&#x003B8;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003BC;</mi><mo>&#x02212;</mo><msub><mi>x</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00394;</mi><mi>t</mi><mo>&#x0002B;</mo><mi>&#x003C3;</mi><msqrt><mrow><mi>&#x00394;</mi><mi>t</mi></mrow></msqrt><mspace width="0.167em" /><msub><mi>Z</mi><mi>n</mi></msub><mo>&#x0002C;</mo><mspace width="2em" /><msub><mi>Z</mi><mi>n</mi></msub><mi>&#x0007E;</mi><mi>&#x1D4A9;</mi><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002E;</mo></mrow></menclose></mrow></math></div>
+
+<p>This produces a discrete approximation <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>P</mi><mi>&#x02113;</mi></msub></mrow></math></span> with step size <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x00394;</mi><msub><mi>t</mi><mi>&#x02113;</mi></msub><mo>&#x0003D;</mo><mi>T</mi><mo>&#x0002F;</mo><msup><mn>2</mn><mi>&#x02113;</mi></msup></mrow></math></span>.</p>
+<p>But refining the time step improves accuracy only at the cost of drastically more computation.</p>
+<p>This is where MLMC enters.</p>
+<hr />
+<h2>2. The MLMC Idea</h2>
+<p>Instead of running a huge Monte Carlo simulation at the finest step size, MLMC decomposes the expectation using a <strong>telescoping sum</strong>:</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><msub><mi>P</mi><mi>L</mi></msub><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">]</mo><mo>&#x0002B;</mo><msubsup><mo>&#x02211;</mo><mrow><mi>&#x02113;</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mrow><mi>L</mi></mrow></msubsup><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><msub><mi>P</mi><mi>&#x02113;</mi></msub><mo>&#x02212;</mo><msub><mi>P</mi><mrow><mi>&#x02113;</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo stretchy="false">]</mo><mo>&#x0002C;</mo></mrow></math></div>
+
+<p>where:</p>
+<ul>
+<li><span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>P</mi><mi>&#x02113;</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math></span> is the payoff computed using time step <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>&#x00394;</mi><msub><mi>t</mi><mi>&#x02113;</mi></msub><mo>&#x0003D;</mo><mi>T</mi><mo>&#x0002F;</mo><msup><mn>2</mn><mi>&#x02113;</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math></span>,</li>
+<li><span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>P</mi><mi>&#x02113;</mi></msub><mo>&#x02212;</mo><msub><mi>P</mi><mrow><mi>&#x02113;</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo stretchy="false">&#x00029;</mo></mrow></math></span> is a <strong>level correction</strong>, computed by coupling coarse and fine simulations using the same random normal increments.</li>
+</ul>
+<p>The key insight:</p>
+<blockquote>
+<p>Coarse levels are cheap but inaccurate.<br />
+Fine levels are expensive but accurate.<br />
+MLMC mixes many cheap coarse samples with few expensive fine samples—<br />
+<strong>reducing total variance at minimal cost.</strong></p>
+</blockquote>
+<hr />
+<h2>3. What Quantities MLMC Needs</h2>
+<p>To carry out the MLMC optimization, we need just three quantities per level <span class="math-inline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>&#x02113;</mi><mo stretchy="false">&#x00029;</mo></mrow></math></span>:</p>
+<ol>
+<li><strong>Variance</strong><br />
+<br />
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>V</mi><mi>&#x02113;</mi></msub><mo>&#x0003D;</mo><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false">&#x00028;</mo><msub><mi>P</mi><mi>&#x02113;</mi></msub><mo>&#x02212;</mo><msub><mi>P</mi><mrow><mi>&#x02113;</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo stretchy="false">&#x00029;</mo></mrow></math></div></li>
+</ol>
+<p>→ Determines how many samples we should take at each level.</p>
+<ol>
+<li><strong>Cost</strong><br />
+<br />
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>C</mi><mi>&#x02113;</mi></msub><mo>&#x0221D;</mo><msup><mn>2</mn><mi>&#x02113;</mi></msup></mrow></math></div></li>
+</ol>
+<p>→ Number of time steps per sample.</p>
+<ol>
+<li><strong>Bias estimate</strong>  </li>
+</ol>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>B</mi><mi>L</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x0007C;</mo><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><msub><mi>P</mi><mi>L</mi></msub><mo>&#x02212;</mo><msub><mi>P</mi><mrow><mi>L</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo stretchy="false">]</mo><mo stretchy="false">&#x0007C;</mo></mrow></math></div>
+<p>→ Determines how deep the hierarchy must extend.</p>
+<p>These three numbers feed directly into the MLMC formula for the <strong>optimal number of samples per level</strong>.</p>
+    </article>
+  </main>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disaggregated Price Stock Screener | Vikram Oddiraju</title>
+  <meta name="description" content="A quantitative walkthrough of building a ranked stock screener based on disaggregated price using Finviz data and the DuPont Identity." />
+  <link rel="stylesheet" href="../../src/styles.css" />
+</head>
+<body class="paper-page">
+  <main class="paper-container">
+    <header class="paper-header">
+      <p class="paper-kicker"><a href="../../src/index.html">Vikram Oddiraju</a> | 2024-10-26 </p>
+      <h1>Disaggregated Price Stock Screener</h1>
+      <p class="paper-subtitle">Building a Value-Ranked Screener with Finviz and Python</p>
+      
+      <p class="paper-summary">A quantitative walkthrough of building a ranked stock screener based on disaggregated price using Finviz data and the DuPont Identity.</p>
+      <a class="paper-edit" href="https://vikramoddiraju.substack.com/publish/post/149990109">Substack Version</a>
+    </header>
+    <article class="paper-body">
+<h2>TL;DR</h2>
+<p>If you don’t feel like reading this newsletter but want the code, here’s the link to my GitHub repository:<br />
+<a href="https://github.com/yourusername/Disaggregated-Price-Stock-Screener"><strong>Disaggregated Price Stock Screener</strong></a></p>
+<p>The code is well documented, but the last section of this post walks you through it step-by-step.</p>
+<hr />
+<blockquote>
+<p><em>"A body at rest will remain at rest, and a body in motion will remain in motion in the direction of its motion unless acted upon by an outside force."</em><br />
+— <strong>Sir Isaac Newton (First Law of Motion)</strong></p>
+</blockquote>
+<hr />
+<p>Newton probably hadn’t predicted this, but his first law of motion is just as prudent for solving a rigid-body physics problem as it is for addressing one of the hardest hurdles facing individual investors.</p>
+<p>In pursuit of actively managing a personal portfolio, many individual investors get stuck at the <strong>“getting the ball rolling”</strong> step — finding what companies to perform due diligence on.<br />
+This barrier to entry was one of the reasons <strong>Jack Bogle</strong> created the <em>Vanguard 500 Index Fund</em> — a passively managed mutual fund that tracks the S&amp;P 500, giving investors diversification without excessive management fees.<br />
+It’s also why passive funds’ AUM overtook that of actively managed funds at the end of 2023.</p>
+<p>While there’s nothing wrong with being a passive investor (in fact, most people should be), I believe that individual investors would benefit from <strong>some of the tools professional investors use</strong> — one being the <strong>stock screener</strong>.</p>
+<hr />
+<h2>Why Screeners Matter</h2>
+<p>The main purpose of a stock screener is to quickly filter out companies that don’t fit an investor’s criteria.<br />
+For example, an investor might say:</p>
+<blockquote>
+<p>“I only want companies with ROIC &gt; 15%, debt-to-equity &lt; 0.4, buyback yield between 5–7.5%, and only in the mega-cap space.”</p>
+</blockquote>
+<p>From this shortlist, they can perform deeper quantitative and fundamental analysis.</p>
+<p>Shortlisting is fine — it gets investors started.<br />
+However, once I had a shortlist, I found myself asking:<br />
+<strong>Which of these are actually worth researching further?</strong><br />
+I wanted a <strong>ranked screener based on value</strong>, not just a filter.</p>
+<hr />
+<h2>The Challenge</h2>
+<p>Like many retail investors, I don’t have access to Morningstar’s valuations or Bloomberg/FactSet screening tools.<br />
+It’s just me and my Mac.</p>
+<p>Recently, I tuned into an old episode of <em>Value Investing with Legends</em> featuring <strong>Kim Shannon</strong>, portfolio manager at Sionna Investment Managers.<br />
+She’s used a quantitative screener since 1986 that involves letting <em>“price = price”</em> (timestamp 24:04).</p>
+<p>What she really meant was:  </p>
+<blockquote>
+<p><em>How does the current share price of a company compare to its disaggregated share price?</em></p>
+</blockquote>
+<p>This approach provides a <strong>rough intrinsic value</strong>, letting investors act quickly while identifying warning signs like high leverage or poor asset turnover.</p>
+<hr />
+<h2>My Approach</h2>
+<p>Sionna’s screening tool is much more sophisticated, but conceptually we’re doing the same thing.</p>
+<p>I <strong>disaggregate price</strong> by:</p>
+<ol>
+<li>Obtaining a <strong>two-year historical return on equity</strong> using the <strong>DuPont Identity</strong>,  </li>
+<li>Multiplying that by <strong>equity value per share</strong> to get EPS,  </li>
+<li>Then multiplying EPS by a <strong>two-year average P/E ratio</strong> to obtain the <em>disaggregated price</em>.</li>
+</ol>
+<p><em>(See: DuPont Identity Explanation.)</em></p>
+<hr />
+<h2>Limitations</h2>
+<p>There are weaknesses — using historical averages doesn’t capture future changes or business model shifts.<br />
+But that’s not the goal.<br />
+If I wanted the most precise intrinsic values, I’d be running <strong>5000 DCF models a day</strong> and never sleeping.</p>
+<p>My goals for the screener are simple:
+- Establish a <strong>baseline understanding</strong> of companies<br />
+- Run <strong>quickly</strong><br />
+- <strong>Save time</strong> — avoid staring at 30 tickers at once  </p>
+<p>I also wanted it to be <strong>free</strong> and <strong>easy to use</strong>, even for non-programmers.<br />
+Thanks to <strong>Finviz</strong>, whose <a href="https://finviz.com/screener.ashx">developer API</a> provides free access to eight quarters of financial data, this became possible.</p>
+<hr />
+<h2>Implementation</h2>
+<p>Below is a summary of the key components of the screener, followed by the full Python code.</p>
+<hr />
+<h3>1. Install Dependencies</h3>
+<p>You can run this in <strong>Google Colab</strong> or any local Python environment:</p>
+<pre><code class="language-bash">!pip install finvizfinance
+</code></pre>
+<pre><code class="language-python">&quot;&quot;&quot;
+This code block creates the universe of companies to analyze.
+In my article, I call this shortlisting. Some investors stop here,
+but I believe we can go further.
+&quot;&quot;&quot;
+from finvizfinance.screener.valuation import Valuation
+
+# Create a Valuation object
+valuation = Valuation()
+
+# Available filters include:
+# 'Market Cap.', 'Debt/Equity', 'Return on Investment', etc.
+filters_dict = {
+    'Market Cap.': '+Mid (over $2bln)',
+    'Country': 'USA',
+    'Debt/Equity': 'Under 0.3',
+    'Return on Investment': 'Over +20%'
+}
+
+valuation.set_filter(filters_dict=filters_dict)
+df_valuation = valuation.screener_view()
+df_valuation
+</code></pre>
+<pre><code class="language-python">import pandas as pd
+from finvizfinance.quote import Statements
+
+# Initialize DataFrame
+df_financials_summary = pd.DataFrame(columns=[
+    'Ticker', 'Price/Share', 'Net Income', 'Total Revenue', 'Total Assets',
+    'Total Equity', 'Net Profit Margin (annualized)', 'Asset Turnover',
+    'Leverage', 'Normalized ROE', 'Equity/share', 'EPS',
+    'Normalized P/E', 'Disaggregated Price', 'Valuation', 'P/FV'
+])
+
+# Loop through each ticker
+for ticker in df_valuation['Ticker']:
+    try:
+        stock_statements = Statements()
+        df_is = stock_statements.get_statements(ticker, statement='I', timeframe='Q')
+        df_bs = stock_statements.get_statements(ticker, statement='B', timeframe='Q')
+    except:
+        continue
+
+    price = df_valuation.loc[df_valuation['Ticker'] == ticker, 'Price'].values[0]
+    net_income, total_revenue, shares_outstanding, price_to_earnings = 0, 0, 0, 0
+    assets, equity = 0, 0
+
+    # Use recent data
+    is_cols = min(20, len(df_is.columns))
+    bs_cols = min(20, len(df_bs.columns))
+
+    # Aggregate historical data
+    for i in range(is_cols):
+        try:
+            net_income += float(df_is.loc['Net Income'].values[i].replace(',', ''))
+            total_revenue += float(df_is.loc['Total Revenue'].values[i].replace(',', ''))
+            shares_outstanding += float(df_is.loc['Shares Outstanding'].values[i].replace(',', ''))
+            price_to_earnings += float(df_is.loc['Price To Earnings Ratio'].values[i].replace(',', ''))
+        except:
+            continue
+
+    for i in range(bs_cols):
+        try:
+            assets += float(df_bs.loc['Total Assets'].values[i].replace(',', ''))
+            equity += float(df_bs.loc['Total Equity'].values[i].replace(',', ''))
+        except:
+            continue
+
+    try:
+        net_income_avg = net_income / is_cols
+        total_revenue_avg = total_revenue / is_cols
+        assets_avg = assets / bs_cols
+        equity_avg = equity / bs_cols
+        shares_outstanding_avg = shares_outstanding / is_cols
+    except ZeroDivisionError:
+        continue
+
+    # DuPont breakdown
+    try:
+        net_profit_margin = (net_income_avg * 4) / total_revenue_avg
+        asset_turnover = total_revenue_avg / assets_avg
+        leverage = assets_avg / equity_avg
+    except ZeroDivisionError:
+        continue
+
+    roe = net_profit_margin * asset_turnover * leverage
+    equity_per_share = equity_avg / shares_outstanding_avg
+    eps = roe * equity_per_share
+
+    # Disaggregated Price
+    price_to_earnings_avg = price_to_earnings / is_cols
+    disaggregated_price = eps * price_to_earnings_avg
+
+    new_row = pd.DataFrame([[
+        ticker, price, int(net_income_avg)/100, int(total_revenue_avg)/100,
+        int(assets_avg)/100, int(equity_avg)/100, net_profit_margin,
+        asset_turnover, leverage, roe, equity_per_share, eps,
+        price_to_earnings_avg, round(disaggregated_price, 2),
+        'Overvalued' if (price &gt; disaggregated_price * 1.05)
+        else 'Undervalued' if (price &lt; disaggregated_price * 0.95)
+        else 'Fair Valued',
+        round(price / disaggregated_price, 2)
+    ]], columns=df_financials_summary.columns)
+
+    if not new_row.isnull().all().all():
+        df_financials_summary = pd.concat([df_financials_summary, new_row], ignore_index=True)
+
+# Save results
+df_financials_summary.to_csv('screen.csv')
+df_financials_summary
+</code></pre>
+    </article>
+  </main>
+</body>
+</html>

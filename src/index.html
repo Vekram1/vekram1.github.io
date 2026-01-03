@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vikram Oddiraju</title>
+    <meta name="description"
+        content="Personal website of Vikram Oddiraju. Writing on computation, systems, and numerical methods." />
+
+    <!-- Single stylesheet -->
+    <link rel="stylesheet" href="/styles.css" />
+
+    <!-- Optional: instant navigation for papers (safe, progressive enhancement) -->
+    <script type="speculationrules">
+    {
+      "prerender": [
+        { "where": { "href_matches": "/papers/*" }, "eagerness": "moderate" }
+      ]
+    }
+    </script>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif
+        }
+        .circle-image {
+            width: 150px;
+            /* Set a fixed width */
+            height: 150px;
+            /* Set an equal height to form a square container */
+            object-fit: cover;
+            /* This crops and scales the image to cover the container */
+            border-radius: 50%;
+            /* This rounds the corners into a perfect circle */
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- <main class="container"> -->
+
+        <!-- Identity / header -->
+            <img class="circle-image" src="../public_assets/profile.jpg" alt="Portrait of Vikram Oddiraju"
+                class="avatar" width="140" height="140" fetchpriority="high" />
+
+
+            <div class="intro">
+                <h1>Vikram Oddiraju</h1>
+
+                <p class="tagline">
+                    I graduated from Purdue University in the Spring of 2025. My passion is using numerical linear
+                    algebra, exploiting floating point
+                    arithmetic, and parallel algorithms to make high-consequence problems in computational science and
+                    AI solvable.
+                </p>
+
+                <nav class="links">
+                    [<a href="https://github.com/Vekram1">GitHub</a>]
+                    [<a href="https://www.linkedin.com/in/vikram-oddiraju/">LinkedIn</a>]
+                    [<a href="https://substack.com/@vikramoddiraju?">Substack</a>]
+                    [<a href="https://x.com/vkrm_odrju">X</a>]
+                    [<a href="mailto:vikramoddiraju@gmail.com">Gmail</a>]
+                </nav>
+            </div>
+        </section>
+
+        <!-- Resume -->
+        <section class="writing">
+            <h2>Resume/CV</h2>
+
+        <a href="../public_assets/vikram_oddiraju_resume_1.pdf" target="_blank" rel="noopener">
+            Resume (PDF)
+        </a>
+        <!-- Writing section -->
+        <section class="writing">
+            <h2>Writing</h2>
+
+            <!--
+        This div is intentionally simple.
+        Your build step will replace its contents.
+      -->
+            <ul class="writing-list">
+    <li class="writing-item">
+        <a href="../writing/multilevel_monte_carlo_writing/multilevel-monte-carlo-for-the-ornstein-uhlenbeck-sde.html">Multilevel Monte Carlo for the Ornstein–Uhlenbeck SDE</a>
+        <span class="date">2025-10-21</span>
+        <p class="writing-summary">An exploration of Multilevel Monte Carlo (MLMC) for estimating expectations of stochastic differential equations, using the Ornstein–Uhlenbeck process as a test case. I investigate how approximate random variables and mixed floating-point precision influence computational efficiency and accuracy.</p>
+    </li>
+    <li class="writing-item">
+        <a href="../writing/costly_financial_intermediation_writing/costly-financial-intermediation.html">Costly Financial Intermediation</a>
+        <span class="date">2025-09-28</span>
+
+    </li>
+    <li class="writing-item">
+        <a href="../writing/portfolio_optimization_rl_writing/portfolio-optimization-using-a-reinforcement-learning-based-iterative-solver-fgmres.html">Portfolio Optimization using a Reinforcement Learning based Iterative Solver – FGMRES</a>
+        <span class="date">2025-08-24</span>
+        <p class="writing-summary">A deep dive into using FGMRES, an iterative solver enhanced with reinforcement learning, for efficient portfolio optimization.</p>
+    </li>
+    <li class="writing-item">
+        <a href="../writing/disagregated_price_stock_screener_writing/disaggregated-price-stock-screener.html">Disaggregated Price Stock Screener</a>
+        <span class="date">2024-10-26</span>
+        <p class="writing-summary">A quantitative walkthrough of building a ranked stock screener based on disaggregated price using Finviz data and the DuPont Identity.</p>
+    </li>
+    </ul>
+        </section>
+
+    </main>
+</body>
+
+</html>
