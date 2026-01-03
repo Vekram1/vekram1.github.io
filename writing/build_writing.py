@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WRITING_DIR = ROOT / "writing"
-INDEX_HTML = Path("../src/index.html")
+INDEX_HTML = ROOT / "index.html"
 
 
 def slugify(value: str) -> str:
@@ -154,12 +154,12 @@ def render_paper_html(meta: dict, body_html: str) -> str:
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
   <title>{html.escape(str(title))} | Vikram Oddiraju</title>
   <meta name=\"description\" content=\"{html.escape(str(summary or ''))}\" />
-  <link rel=\"stylesheet\" href=\"../../src/styles.css\" />
+  <link rel=\"stylesheet\" href=\"../../styles.css\" />
 </head>
 <body class=\"paper-page\">
   <main class=\"paper-container\">
     <header class=\"paper-header\">
-      <p class=\"paper-kicker\"><a href=\"../../src/index.html\">Vikram Oddiraju</a> | {date_value} </p>
+      <p class=\"paper-kicker\"><a href=\"../../index.html">Vikram Oddiraju</a> | {date_value} </p>
       <h1>{html.escape(str(title))}</h1>
       {subtitle_html}
       {meta_html}
@@ -187,7 +187,7 @@ def render_writing_list(entries: list[dict]) -> str:
             "\n".join(
                 [
                     "    <li class=\"writing-item\">",
-                    f"        <a href=\"..{href}\">{title}</a>",
+                    f"        <a href=\".{href}\">{title}</a>",
                     f"        <span class=\"date\">{date_value}</span>",
                     f"        {summary_html}" if summary_html else "",
                     "    </li>",
