@@ -24,10 +24,18 @@ a {
     font-weight: 600;
 }
 
+.writing-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+}
+
 .date {
-    margin-left: 12px;
+    margin-left: 0;
     color: var(--muted);
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .writing-summary {

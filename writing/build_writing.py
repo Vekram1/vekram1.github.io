@@ -187,8 +187,10 @@ def render_writing_list(entries: list[dict]) -> str:
             "\n".join(
                 [
                     "    <li class=\"writing-item\">",
-                    f"        <a href=\".{href}\">{title}</a>",
-                    f"        <span class=\"date\">{date_value}</span>",
+                    "        <div class=\"writing-title\">",
+                    f"            <a href=\".{href}\">{title}</a>",
+                    f"            <span class=\"date\">{date_value}</span>",
+                    "        </div>",
                     f"        {summary_html}" if summary_html else "",
                     "    </li>",
                 ]
