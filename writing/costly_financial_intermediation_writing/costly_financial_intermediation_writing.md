@@ -5,10 +5,9 @@ url: /costly_financial_intermediation/
 author: ["Vikram Oddiraju"]
 description: "" 
 summary: ""
-# editPost:
-#     URL: 
-#     Text: "PDF version"
-<a href="./Costly_Financial_Intermediation.pdf" target="_blank">PDF Version</a>
+editPost:
+    URL: "./Costly_Financial_Intermediation.pdf"
+    Text: "PDF version"
 
 ---
 ---
