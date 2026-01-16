@@ -1,13 +1,15 @@
 ---
 title: "Costly Financial Intermediation" 
 date: 2025-09-28
-url: /costly_financial_inermediation/
+url: /costly_financial_intermediation/
 author: ["Vikram Oddiraju"]
 description: "" 
 summary: ""
-editPost:
-    URL: "https://vikramoddiraju.substack.com/publish/post/149990109"
-    Text: "PDF version"
+# editPost:
+#     URL: 
+#     Text: "PDF version"
+<a href="./Costly_Financial_Intermediation.pdf" target="_blank">PDF Version</a>
+
 ---
 ---
 ## Problem Setup
